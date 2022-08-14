@@ -7,7 +7,31 @@
 #    http://shiny.rstudio.com/
 #
 
+library(tidyverse)
 library(shiny)
+library(rjson)
+library(blsAPI)
+
+# Load data ----
+
+## Note: APIkey.R must be initialized first (creates variable APIkey with unique BLS registration key)
+
+payload <- list(
+  'seriesid'=c('PCU336411336411','PCU336510336510','PCU336110336110','PCU336611336611'),
+  'startyear'=2002,
+  'endyear'=2022,
+  'annualaverage'=TRUE,
+  'registrationKey'=APIkey
+)
+response <- blsAPI(payload,2)
+json <- fromJSON(response)
+
+planesdf <- apiDF(json$Results$series[[1]]$data)
+trainsdf <- apiDF(json$Results$series[[2]]$data)
+automobilesdf <- apiDF(json$Results$series[[3]]$data)
+shipsdf <- apiDF(json$Results$series[[4]]$data)
+
+# ui ----
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -31,6 +55,8 @@ ui <- fluidPage(
         )
     )
 )
+
+# server ----
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
